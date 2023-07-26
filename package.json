@@ -1,0 +1,38 @@
+{
+  "name": "datapipe",
+  "version": "0.1.0",
+  "description": "A library designed to efficiently process large amounts of data in a streaming manner, without the need to store the entire dataset in memory.",
+  "keywords": [
+    "data pipeline",
+    "data processing",
+    "data transformation",
+    "data streaming",
+    "data flow",
+    "ETL (Extract, Transform, Load)",
+    "data filtering",
+    "data aggregation",
+    "data manipulation",
+    "data integration",
+    "data serialization",
+    "data deserialization",
+    "data enrichment",
+    "data analytics",
+    "data ingestion",
+    "data handling",
+    "data workflow",
+    "data management",
+    "data connectors",
+    "data synchronization"
+  ],
+  "homepage": "https://github.com/ashyshko/datapipe#readme",
+  "bugs": {
+    "url": "https://github.com/ashyshko/datapipe/issues"
+  },
+  "license": "ISC",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrey Shyshko",
+  "repository": "github:ashyshko/datapipe"
+}
