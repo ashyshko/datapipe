@@ -1,40 +1,67 @@
 import { filterMap } from "./filterMap";
-import { DataPipeBase } from "../DataPipeBase";
 
-describe("FilterMap", () => {
-  const dummyDataPipe = {
-    _registerTransform: jest.fn(),
-  } as unknown as DataPipeBase;
+describe("filterMap", () => {
+  it("should filter and map", () => {
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-  it("should emit mapped values using the mapping function", () => {
-    const func = jest.fn().mockReturnValue({ value: 123, metadata: true });
-    const obj = filterMap(dummyDataPipe, func);
-    obj._start();
+    const callback = jest
+      .fn()
+      .mockReturnValueOnce(undefined)
+      .mockReturnValueOnce({ value: "hello", metadata: "world" });
 
-    // @ts-expect-error emitError is private
-    const emitItemSpy = jest.spyOn(obj, "emitItem");
+    const obj = filterMap(callback);
+    obj.onItem(123, 234, control as any);
+    obj.onItem(345, 456, control as any);
+    obj.onEof(control as any);
 
-    // @ts-expect-error processItem is protected
-    const processItem = obj.processItem.bind(obj);
-
-    processItem(42, "dummy");
-    expect(func.mock.calls).toEqual([[42, "dummy"]]);
-    expect(emitItemSpy.mock.calls).toEqual([[123, true]]);
+    expect(callback.mock.calls).toEqual([
+      [123, 234],
+      [345, 456],
+    ]);
+    expect(control.emitItem).toBeCalledWith("hello", "world");
+    expect(control.emitError).not.toBeCalled();
+    expect(control.emitEof).toBeCalledWith();
   });
 
-  it("should not emit anything when the mapping function returns undefined", () => {
-    const func = jest.fn().mockReturnValue(undefined);
-    const obj = filterMap(dummyDataPipe, func);
-    obj._start();
+  it("should emit error", () => {
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-    // @ts-expect-error emitItem is private
-    const emitItemSpy = jest.spyOn(obj, "emitItem");
+    const callback = jest.fn();
 
-    // @ts-expect-error processItem is protected
-    const processItem = obj.processItem.bind(obj);
+    const obj = filterMap(callback);
+    obj.onError(new Error("dummy error"), control as any);
 
-    processItem(42, "dummy");
-    expect(func.mock.calls).toEqual([[42, "dummy"]]);
-    expect(emitItemSpy).not.toBeCalled();
+    expect(callback).not.toBeCalled();
+    expect(control.emitItem).not.toBeCalled();
+    expect(control.emitError).toBeCalledWith(new Error("dummy error"));
+    expect(control.emitEof).not.toBeCalled();
+  });
+
+  it("should emit error from callback", () => {
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
+
+    const callback = jest.fn().mockImplementation(() => {
+      throw new Error("dummy error");
+    });
+
+    const obj = filterMap(callback);
+    obj.onItem(123, 234, control as any);
+
+    expect(callback).toBeCalledWith(123, 234);
+    expect(control.emitItem).not.toBeCalled();
+    expect(control.emitError).toBeCalledWith(new Error("dummy error"));
+    expect(control.emitEof).not.toBeCalled();
   });
 });

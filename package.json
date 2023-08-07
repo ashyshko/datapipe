@@ -29,8 +29,14 @@
     "url": "https://github.com/ashyshko/datapipe/issues"
   },
   "license": "ISC",
-  "main": "index.js",
+  "type": "commonjs",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "files": [
+    "out/**"
+  ],
   "scripts": {
+    "build": "tsc",
     "test": "jest"
   },
   "author": "Andrey Shyshko",

@@ -1,12 +1,8 @@
-import { DataPipeBase } from "../DataPipeBase";
+import { DataPipe } from "../DataPipe";
 import * as readableStreamReadModule from "./readableStreamRead";
 import { fetch } from "./fetch";
 
 describe("fetch", () => {
-  const dummyDataPipe = {
-    _registerTransform: jest.fn(),
-  } as unknown as DataPipeBase;
-
   it("should pipe body to readableStream", async () => {
     const spyGlobalFetch = jest.spyOn(global, "fetch");
 
@@ -22,32 +18,33 @@ describe("fetch", () => {
       onItem: jest.fn(),
       onError: jest.fn(),
       onEof: jest.fn(),
-
-      join: jest.fn().mockReturnValue(undefined),
-
-      _start: jest.fn(),
-      _cancel: jest.fn(),
     };
 
     const spyReadableStreamRead = jest
       .spyOn(readableStreamReadModule, "readableStreamRead")
       .mockReturnValueOnce(readableStreamReadCallbacks as any);
 
-    const obj = fetch(dummyDataPipe);
-    obj._start();
+    const obj = fetch();
 
+    const control: any = { mockControl: true };
+
+    obj.init?.(control);
     obj.onItem(
       { input: "url", init: { method: "POST" } },
       { metadata: "original" },
+      control,
     );
-    obj.onEof();
-    await obj.join();
+    await new Promise(process.nextTick);
 
-    expect(readableStreamReadCallbacks.onItem).toBeCalledWith(readableStream, {
-      fetchInput: "url",
-      metadata: "original",
-    });
-    expect(readableStreamReadCallbacks.onEof).toBeCalled();
+    expect(readableStreamReadCallbacks.onError).not.toBeCalled();
+    expect(readableStreamReadCallbacks.onItem).toBeCalledWith(
+      readableStream,
+      {
+        fetchInput: "url",
+        metadata: "original",
+      },
+      expect.anything(),
+    );
 
     spyGlobalFetch.mockRestore();
     spyReadableStreamRead.mockRestore();
@@ -62,28 +59,31 @@ describe("fetch", () => {
       onItem: jest.fn(),
       onError: jest.fn(),
       onEof: jest.fn(),
-
-      join: jest.fn().mockReturnValue(undefined),
-
-      _start: jest.fn(),
-      _cancel: jest.fn(),
     };
 
     const spyReadableStreamRead = jest
       .spyOn(readableStreamReadModule, "readableStreamRead")
       .mockReturnValueOnce(readableStreamReadCallbacks as any);
 
-    const obj = fetch(dummyDataPipe);
-    obj._start();
+    const control: any = { mockControl: true };
+
+    const obj = fetch();
+    obj.init?.(control as any);
 
     obj.onItem(
       { input: "url", init: { method: "POST" } },
       { metadata: "original" },
+      control as any,
     );
-    await expect(() => obj.join()).rejects.toThrow("dummy error");
+
+    await new Promise(process.nextTick);
 
     expect(readableStreamReadCallbacks.onItem).not.toBeCalled();
     expect(readableStreamReadCallbacks.onEof).not.toBeCalled();
+    expect(readableStreamReadCallbacks.onError).toBeCalledWith(
+      new Error("dummy error"),
+      expect.anything(),
+    );
 
     spyGlobalFetch.mockRestore();
     spyReadableStreamRead.mockRestore();
@@ -102,30 +102,31 @@ describe("fetch", () => {
       onItem: jest.fn(),
       onError: jest.fn(),
       onEof: jest.fn(),
-
-      join: jest.fn().mockReturnValue(undefined),
-
-      _start: jest.fn(),
-      _cancel: jest.fn(),
     };
 
     const spyReadableStreamRead = jest
       .spyOn(readableStreamReadModule, "readableStreamRead")
       .mockReturnValueOnce(readableStreamReadCallbacks as any);
 
-    const obj = fetch(dummyDataPipe);
-    obj._start();
+    const control: any = { mockControl: true };
+
+    const obj = fetch();
+    obj.init?.(control as any);
 
     obj.onItem(
       { input: "url", init: { method: "POST" } },
       { metadata: "original" },
+      control as any,
     );
-    await expect(() => obj.join()).rejects.toThrow(
-      "fetch failed with HTTP error 404: Not Found",
-    );
+
+    await new Promise(process.nextTick);
 
     expect(readableStreamReadCallbacks.onItem).not.toBeCalled();
     expect(readableStreamReadCallbacks.onEof).not.toBeCalled();
+    expect(readableStreamReadCallbacks.onError).toBeCalledWith(
+      new Error("fetch failed with HTTP error 404: Not Found"),
+      expect.anything(),
+    );
 
     spyGlobalFetch.mockRestore();
     spyReadableStreamRead.mockRestore();
@@ -145,30 +146,31 @@ describe("fetch", () => {
       onItem: jest.fn(),
       onError: jest.fn(),
       onEof: jest.fn(),
-
-      join: jest.fn().mockReturnValue(undefined),
-
-      _start: jest.fn(),
-      _cancel: jest.fn(),
     };
 
     const spyReadableStreamRead = jest
       .spyOn(readableStreamReadModule, "readableStreamRead")
       .mockReturnValueOnce(readableStreamReadCallbacks as any);
 
-    const obj = fetch(dummyDataPipe);
-    obj._start();
+    const control: any = { mockControl: true };
+
+    const obj = fetch();
+    obj.init?.(control as any);
 
     obj.onItem(
       { input: "url", init: { method: "POST" } },
       { metadata: "original" },
+      control as any,
     );
-    await expect(() => obj.join()).rejects.toThrow(
-      "no body provided in response",
-    );
+
+    await new Promise(process.nextTick);
 
     expect(readableStreamReadCallbacks.onItem).not.toBeCalled();
     expect(readableStreamReadCallbacks.onEof).not.toBeCalled();
+    expect(readableStreamReadCallbacks.onError).toBeCalledWith(
+      new Error("no body provided in response"),
+      expect.anything(),
+    );
 
     spyGlobalFetch.mockRestore();
     spyReadableStreamRead.mockRestore();

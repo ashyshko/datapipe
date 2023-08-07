@@ -1,24 +1,24 @@
-import { transform } from "../transformFn";
-import { DataPipeBase } from "../DataPipeBase";
+import { NormalizedHandler, normalize } from "../Handler";
 
 export function filterMap<InValueT, InMetadataT, OutValueT, OutMetadataT>(
-  dataPipe: DataPipeBase,
-  fn: (
+  callback: (
     value: InValueT,
     metadata: InMetadataT,
   ) => { value: OutValueT; metadata: OutMetadataT } | undefined,
-  name = "filterMap",
-) {
-  return transform<InValueT, InMetadataT, OutValueT, OutMetadataT>(
-    dataPipe,
-    {
-      processItem(value: InValueT, metadata: InMetadataT, ctx): void {
-        const transformed = fn(value, metadata);
-        if (transformed !== undefined) {
-          ctx.emitItem(transformed.value, transformed.metadata);
+): NormalizedHandler<InValueT, InMetadataT, OutValueT, OutMetadataT> {
+  return normalize({
+    onItem(value, metadata, control) {
+      try {
+        const mapped = callback(value, metadata);
+        if (mapped !== undefined) {
+          control.emitItem(mapped.value, mapped.metadata);
         }
-      },
+      } catch (e) {
+        /* istanbul ignore next */
+        const error = e instanceof Error ? e : new Error("unknown error");
+
+        control.emitError(error);
+      }
     },
-    name,
-  );
+  });
 }

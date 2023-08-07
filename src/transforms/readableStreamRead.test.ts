@@ -1,48 +1,7 @@
-import { DataPipeBase } from "../DataPipeBase";
 import { readableStreamRead } from "./readableStreamRead";
 
 describe("readableStreamInput", () => {
-  const dummyDataPipe = {
-    _registerTransform: jest.fn(),
-  } as unknown as DataPipeBase;
-
   it("should read data", async () => {
-    const reader = {
-      read: jest.fn<
-        Promise<{ value: string | undefined; done: boolean }>,
-        []
-      >(),
-    };
-
-    const obj = readableStreamRead<string, { meta: boolean }>(dummyDataPipe);
-
-    reader.read
-      .mockResolvedValueOnce({ value: "hello", done: false })
-      .mockResolvedValueOnce({ value: "world", done: false })
-      .mockResolvedValueOnce({ value: undefined, done: true });
-
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
-    // @ts-expect-error emitEof is protected
-    const spyEmitEof = jest.spyOn(obj, "emitEof");
-
-    obj._start();
-    obj.onItem(
-      {
-        getReader: () => reader,
-      } as unknown as ReadableStream<string>,
-      { meta: true },
-    );
-    obj.onEof();
-    await obj.join();
-    expect(spyEmitItem.mock.calls).toEqual([
-      ["hello", { meta: true }],
-      ["world", { meta: true }],
-    ]);
-    expect(spyEmitEof).toBeCalled();
-  });
-
-  it("should cancel async operations", async () => {
     const reader = {
       read: jest.fn<
         Promise<{ value: string | undefined; done: boolean }>,
@@ -51,37 +10,74 @@ describe("readableStreamInput", () => {
       cancel: jest.fn(),
     };
 
-    let cancel = (): void => undefined;
-    const cancelPromise = new Promise<{
-      value: string | undefined;
-      done: boolean;
-    }>((_resolve, reject) => {
-      cancel = () => reject(new Error("cancelled"));
-    });
-
-    const obj = readableStreamRead<string, {}>(dummyDataPipe);
-
     reader.read
       .mockResolvedValueOnce({ value: "hello", done: false })
-      .mockReturnValueOnce(cancelPromise);
+      .mockResolvedValueOnce({ value: "world", done: false })
+      .mockResolvedValueOnce({ value: undefined, done: true });
 
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
 
-    obj._start();
+      setCancelFn: jest.fn(),
+      isStopped: jest.fn().mockReturnValue(false),
+    };
+
+    const obj = readableStreamRead<string, { meta: boolean }>();
+    obj.init!(control as any);
     obj.onItem(
       {
         getReader: () => reader,
       } as unknown as ReadableStream<string>,
-      {},
+      { meta: true },
+      control as any,
+    );
+    obj.onEof(control as any);
+    await new Promise(process.nextTick);
+    expect(control.emitItem.mock.calls).toEqual([
+      ["hello", { meta: true }],
+      ["world", { meta: true }],
+    ]);
+    expect(control.emitEof).toBeCalled();
+  });
+
+  it("should provide cancelFn", async () => {
+    const reader = {
+      read: jest.fn<
+        Promise<{ value: string | undefined; done: boolean }>,
+        []
+      >(),
+      cancel: jest.fn(),
+    };
+
+    reader.read.mockResolvedValueOnce({ value: undefined, done: true });
+
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+
+      setCancelFn: jest.fn(),
+      isStopped: jest.fn().mockReturnValue(false),
+    };
+
+    const obj = readableStreamRead<string, { meta: boolean }>();
+    obj.init!(control as any);
+    obj.onItem(
+      {
+        getReader: () => reader,
+      } as unknown as ReadableStream<string>,
+      { meta: true },
+      control as any,
     );
     await new Promise(process.nextTick);
 
-    expect(reader.read).toBeCalledTimes(2);
-    obj._cancel();
+    expect(control.setCancelFn).toBeCalled();
+
+    const cancelCallback = control.setCancelFn.mock.lastCall![0];
+    expect(reader.cancel).not.toBeCalled();
+    cancelCallback();
     expect(reader.cancel).toBeCalled();
-    cancel();
-    await expect(obj.join()).rejects.toThrow("Canceled");
-    expect(spyEmitItem.mock.calls).toEqual([["hello", {}]]);
   });
 });

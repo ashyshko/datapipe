@@ -1,66 +1,69 @@
-import { DataPipeBase } from "../DataPipeBase";
-import { SampleType } from "../ITransform";
-import { group } from "./group";
+import { Handler, NormalizedHandler } from "../Handler";
+import { withContext } from "../withContext";
 
-export function sample<ValueT, MetadataT, IndexT = number>(
-  dataPipe: DataPipeBase,
-  props: {
-    indexFn: (value: ValueT, metadata: MetadataT) => IndexT;
-    isIndexEqualFn?: (l: IndexT, r: IndexT) => boolean;
-    sampleType: SampleType<ValueT, MetadataT>;
-  },
-  name = "sample",
-) {
-  let context:
-    | {
-        processed: number;
-        current: { value: ValueT; metadata: MetadataT };
-      }
-    | undefined;
+export type SampleType<ValueT, MetadataT> =
+  | "first"
+  | "last"
+  | "random"
+  | {
+      type: "min";
+      valueFn: (value: ValueT, metadata: MetadataT) => number;
+    }
+  | {
+      type: "max";
+      valueFn: (value: ValueT, metadata: MetadataT) => number;
+    };
 
-  return group<ValueT, MetadataT, ValueT, MetadataT, IndexT>(
-    dataPipe,
+export function sample<ValueT, MetadataT>(
+  sampleType: SampleType<ValueT, MetadataT>,
+): NormalizedHandler<ValueT, MetadataT, ValueT, MetadataT> {
+  return withContext<
+    ValueT,
+    MetadataT,
+    ValueT,
+    MetadataT,
     {
-      indexFn: props.indexFn,
-      isIndexEqualFn: props.isIndexEqualFn,
-      startGroupFn(groupIndex, ctx) {
-        context = undefined;
-      },
-      addItemFn(value, metadata, ctx) {
-        if (context === undefined) {
-          context = {
-            processed: 1,
-            current: { value, metadata },
-          };
-          return;
-        }
-
-        context.current = choose(
-          context.current,
-          { value, metadata },
-          props.sampleType,
-          context.processed + 1,
-        );
-        context.processed += 1;
-      },
-      endGroupFn(error, ctx) {
-        if (error !== undefined) {
-          return;
-        }
-
-        ctx.emitItem(context!.current.value, context!.current.metadata);
-      },
+      processed: 0;
+      current: { value: ValueT; metadata: MetadataT } | undefined;
+    }
+  >({
+    init(_control) {
+      return {
+        processed: 0,
+        current: undefined,
+      };
     },
-    name,
-  );
+    onItem(value, metadata, control) {
+      control.context.current = choose(
+        control.context.current,
+        { value, metadata },
+        sampleType,
+        control.context.processed + 1,
+      );
+      control.context.processed++;
+    },
+    onEof(control) {
+      if (control.context.current !== undefined) {
+        control.emitItem(
+          control.context.current.value,
+          control.context.current.metadata,
+        );
+      }
+      control.emitEof();
+    },
+  });
 }
 
 function choose<ValueT, MetadataT>(
-  prev: { value: ValueT; metadata: MetadataT },
+  prev: { value: ValueT; metadata: MetadataT } | undefined,
   current: { value: ValueT; metadata: MetadataT },
   sampleType: SampleType<ValueT, MetadataT>,
   currentSize: number,
 ): { value: ValueT; metadata: MetadataT } {
+  if (prev === undefined) {
+    return current;
+  }
+
   switch (sampleType) {
     case "first":
       return prev;

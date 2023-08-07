@@ -1,175 +1,134 @@
-import { DataPipeBase } from "../DataPipeBase";
 import { sample } from "./sample";
 
 describe("Sample", () => {
-  const dummyDataPipe = {
-    _registerTransform: jest.fn(),
-  } as unknown as DataPipeBase;
+  it("should return first value", () => {
+    const obj = sample("first");
 
-  const dummyIndexFn = ([x, y]: [number, number], metadata: string) =>
-    Math.trunc(x);
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-  it("should return first value for group", () => {
-    const obj = sample(dummyDataPipe, {
-      indexFn: dummyIndexFn,
-      sampleType: "first",
-    });
-
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
-    // @ts-expect-error emitEof is protected
-    const spyEmitEof = jest.spyOn(obj, "emitEof");
-
-    obj._start();
-    obj.onItem([0.0, 10], "1");
-    obj.onItem([0.3, 20], "2");
-    obj.onItem([0.6, 15], "3");
-    obj.onItem([1.0, 30], "4");
-
-    expect(spyEmitItem.mock.calls).toEqual([[[0.0, 10], "1"]]);
-    spyEmitItem.mockClear();
-
-    obj.onItem([1.3, 25], "5");
-    obj.onEof();
-    expect(spyEmitItem.mock.calls).toEqual([[[1.0, 30], "4"]]);
-    expect(spyEmitEof).toBeCalled();
+    obj.init?.(control as any);
+    obj.onItem(10, "1", control as any);
+    obj.onItem(20, "2", control as any);
+    obj.onItem(15, "3", control as any);
+    obj.onItem(30, "4", control as any);
+    obj.onItem(15, "5", control as any);
+    obj.onEof(control as any);
+    expect(control.emitItem).toBeCalledWith(10, "1");
+    expect(control.emitEof).toBeCalled();
   });
 
-  it("should return last value for group", () => {
-    const obj = sample(dummyDataPipe, {
-      indexFn: dummyIndexFn,
-      sampleType: "last",
-    });
+  it("should return last value", () => {
+    const obj = sample("last");
 
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
-    // @ts-expect-error emitEof is protected
-    const spyEmitEof = jest.spyOn(obj, "emitEof");
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-    obj._start();
-    obj.onItem([0.0, 10], "1");
-    obj.onItem([0.3, 20], "2");
-    obj.onItem([0.6, 15], "3");
-    obj.onItem([1.0, 30], "4");
-
-    expect(spyEmitItem.mock.calls).toEqual([[[0.6, 15], "3"]]);
-    spyEmitItem.mockClear();
-
-    obj.onItem([1.3, 25], "5");
-    obj.onEof();
-    expect(spyEmitItem.mock.calls).toEqual([[[1.3, 25], "5"]]);
-    expect(spyEmitEof).toBeCalled();
+    obj.init?.(control as any);
+    obj.onItem(10, "1", control as any);
+    obj.onItem(20, "2", control as any);
+    obj.onItem(15, "3", control as any);
+    obj.onItem(30, "4", control as any);
+    obj.onItem(15, "5", control as any);
+    obj.onEof(control as any);
+    expect(control.emitItem).toBeCalledWith(15, "5");
+    expect(control.emitEof).toBeCalled();
   });
 
-  it("should return random value for group", () => {
-    const obj = sample(dummyDataPipe, {
-      indexFn: dummyIndexFn,
-      sampleType: "random",
-    });
-
+  it("should return random value", () => {
     jest
       .spyOn(Math, "random")
       .mockReturnValueOnce(0.3) // compared for "2" (<0.5) -> selected
-      .mockReturnValueOnce(0.35) // compared for "3" (>0.333) -> ignored
-      .mockReturnValueOnce(0.55); // compared for "5" (>0.5) -> ignored
+      .mockReturnValueOnce(0.35); // compared for "3" (>0.333) -> ignored
 
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
-    // @ts-expect-error emitEof is protected
-    const spyEmitEof = jest.spyOn(obj, "emitEof");
+    const obj = sample("random");
 
-    obj._start();
-    obj.onItem([0.0, 10], "1");
-    obj.onItem([0.3, 20], "2");
-    obj.onItem([0.6, 15], "3");
-    obj.onItem([1.0, 30], "4");
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-    expect(spyEmitItem.mock.calls).toEqual([[[0.3, 20], "2"]]);
-    spyEmitItem.mockClear();
-
-    obj.onItem([1.3, 25], "5");
-    obj.onEof();
-    expect(spyEmitItem.mock.calls).toEqual([[[1.0, 30], "4"]]);
-    expect(spyEmitEof).toBeCalled();
+    obj.init?.(control as any);
+    obj.onItem(10, "1", control as any);
+    obj.onItem(20, "2", control as any);
+    obj.onItem(15, "3", control as any);
+    obj.onEof(control as any);
+    expect(control.emitItem).toBeCalledWith(20, "2");
+    expect(control.emitEof).toBeCalled();
 
     jest.spyOn(Math, "random").mockRestore();
   });
 
   it("should return min value for group", () => {
-    const obj = sample(dummyDataPipe, {
-      indexFn: dummyIndexFn,
-      sampleType: {
-        type: "min",
-        valueFn: (v) => v[1],
-      },
+    const obj = sample({
+      type: "min",
+      valueFn: (v) => v as any,
     });
 
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
-    // @ts-expect-error emitEof is protected
-    const spyEmitEof = jest.spyOn(obj, "emitEof");
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-    obj._start();
-    obj.onItem([0.0, 10], "1");
-    obj.onItem([0.3, 20], "2");
-    obj.onItem([0.6, 15], "3");
-    obj.onItem([1.0, 30], "4");
-
-    expect(spyEmitItem.mock.calls).toEqual([[[0.0, 10], "1"]]);
-    spyEmitItem.mockClear();
-
-    obj.onItem([1.3, 25], "5");
-    obj.onEof();
-    expect(spyEmitItem.mock.calls).toEqual([[[1.3, 25], "5"]]);
-    expect(spyEmitEof).toBeCalled();
+    obj.init?.(control as any);
+    obj.onItem(30, "1", control as any);
+    obj.onItem(20, "2", control as any);
+    obj.onItem(15, "3", control as any);
+    obj.onItem(30, "4", control as any);
+    obj.onItem(20, "5", control as any);
+    obj.onEof(control as any);
+    expect(control.emitItem).toBeCalledWith(15, "3");
+    expect(control.emitEof).toBeCalled();
   });
 
   it("should return max value for group", () => {
-    const obj = sample(dummyDataPipe, {
-      indexFn: dummyIndexFn,
-      sampleType: {
-        type: "max",
-        valueFn: (v) => v[1],
-      },
+    const obj = sample({
+      type: "max",
+      valueFn: (v) => v as any,
     });
 
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
-    // @ts-expect-error emitEof is protected
-    const spyEmitEof = jest.spyOn(obj, "emitEof");
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-    obj._start();
-    obj.onItem([0.0, 10], "1");
-    obj.onItem([0.3, 20], "2");
-    obj.onItem([0.6, 15], "3");
-    obj.onItem([1.0, 30], "4");
-
-    expect(spyEmitItem.mock.calls).toEqual([[[0.3, 20], "2"]]);
-    spyEmitItem.mockClear();
-
-    obj.onItem([1.3, 25], "5");
-    obj.onEof();
-    expect(spyEmitItem.mock.calls).toEqual([[[1.0, 30], "4"]]);
-    expect(spyEmitEof).toBeCalled();
+    obj.init?.(control as any);
+    obj.onItem(15, "1", control as any);
+    obj.onItem(20, "2", control as any);
+    obj.onItem(15, "3", control as any);
+    obj.onItem(30, "4", control as any);
+    obj.onItem(20, "5", control as any);
+    obj.onEof(control as any);
+    expect(control.emitItem).toBeCalledWith(30, "4");
+    expect(control.emitEof).toBeCalled();
   });
 
   it("shouldn't report on error", () => {
-    const obj = sample(dummyDataPipe, {
-      indexFn: dummyIndexFn,
-      sampleType: {
-        type: "max",
-        valueFn: (v) => v[1],
-      },
+    const obj = sample({
+      type: "max",
+      valueFn: (v) => v as any,
     });
 
-    // @ts-expect-error emitItem is protected
-    const spyEmitItem = jest.spyOn(obj, "emitItem");
-    // @ts-expect-error emitEof is protected
-    const spyEmitEof = jest.spyOn(obj, "emitEof");
+    const control = {
+      emitItem: jest.fn(),
+      emitError: jest.fn(),
+      emitEof: jest.fn(),
+    };
 
-    obj._start();
-    obj.onItem([0.0, 10], "1");
-    obj.onError(new Error("dummy error"));
-    expect(spyEmitItem).not.toBeCalled();
+    obj.init?.(control as any);
+    obj.onItem(15, "1", control as any);
+    obj.onError(new Error("dummy error"), control as any);
+    expect(control.emitItem).not.toBeCalled();
+    expect(control.emitError).toBeCalledWith(new Error("dummy error"));
+    expect(control.emitEof).not.toBeCalled();
   });
 });
