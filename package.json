@@ -1,6 +1,6 @@
 {
   "name": "@ashyshko/datapipe",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A library designed to efficiently process large amounts of data in a streaming manner, without the need to store the entire dataset in memory.",
   "keywords": [
     "data pipeline",
@@ -33,7 +33,8 @@
   "main": "out/index.js",
   "types": "types/index.d.ts",
   "files": [
-    "out/**"
+    "out/**",
+    "types/**"
   ],
   "scripts": {
     "build": "rm -rf out types && tsc",
