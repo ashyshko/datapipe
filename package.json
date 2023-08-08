@@ -1,5 +1,5 @@
 {
-  "name": "datapipe",
+  "name": "@ashyshko/datapipe",
   "version": "0.1.0",
   "description": "A library designed to efficiently process large amounts of data in a streaming manner, without the need to store the entire dataset in memory.",
   "keywords": [
@@ -31,12 +31,12 @@
   "license": "ISC",
   "type": "commonjs",
   "main": "out/index.js",
-  "types": "out/index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "out/**"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf out types && tsc",
     "test": "jest"
   },
   "author": "Andrey Shyshko",
