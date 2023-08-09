@@ -1,5 +1,5 @@
 import { DataPipe } from "./DataPipe";
-import { Transform } from "./Transform";
+import { Transform, TransformBase } from "./Transform";
 import * as SenderModule from "./Sender";
 import * as groupModule from "./group";
 
@@ -302,5 +302,28 @@ describe("Transform", () => {
     expect(group).toBeCalledWith({ groupParams: true });
 
     jest.restoreAllMocks();
+  });
+
+  it("should support TransformBase as chain input", async () => {
+    const obj1 = new Transform(dummyDataPipe, {
+      onItem(value, metadata, control) {
+        control.emitItem(value, metadata);
+      },
+    }).filter((v) => true);
+    expect(obj1).toBeInstanceOf(TransformBase);
+    expect(obj1).not.toBeInstanceOf(Transform);
+
+    const obj2 = new Transform(dummyDataPipe, {
+      onItem(value, metadata, control) {
+        control.emitItem(value, metadata);
+      },
+    });
+
+    const filterFn = jest.fn().mockReturnValue(false);
+    const res = obj2.chain(obj1).filter(filterFn);
+    res.onItem(1, 1);
+    res.onEof();
+    await res.join();
+    expect(filterFn.mock.calls).toEqual([[1, 1]]);
   });
 });
