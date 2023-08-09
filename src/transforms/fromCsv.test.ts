@@ -145,9 +145,18 @@ describe("fromCsv", () => {
     await new Promise(process.nextTick);
     expect(control.emitError).not.toBeCalled();
     expect(control.emitItem.mock.calls).toEqual([
-      [{ field1: "1", field2: "2", field3: "3" }, { meta: 1 }],
-      [{ field1: "a", field2: "b", field3: "c" }, { meta: 2 }],
-      [{ field1: "d", field2: "e", field3: "f" }, { meta: 2 }],
+      [
+        { field1: "1", field2: "2", field3: "3" },
+        { originalMetadata: { meta: 1 }, lineNumber: 1 },
+      ],
+      [
+        { field1: "a", field2: "b", field3: "c" },
+        { originalMetadata: { meta: 2 }, lineNumber: 2 },
+      ],
+      [
+        { field1: "d", field2: "e", field3: "f" },
+        { originalMetadata: { meta: 2 }, lineNumber: 3 },
+      ],
     ]);
     expect(control.emitEof).toBeCalledWith();
   });
@@ -188,9 +197,18 @@ describe("fromCsv", () => {
     await new Promise(process.nextTick);
     expect(control.emitError).not.toBeCalled();
     expect(control.emitItem.mock.calls).toEqual([
-      [{ field1: "1", field2: "2", field3: "3" }, { meta: 1 }],
-      [{ field1: "a", field2: "b", field3: "c" }, { meta: 2 }],
-      [{ field1: "d", field2: "e", field3: "f" }, { meta: 2 }],
+      [
+        { field1: "1", field2: "2", field3: "3" },
+        { originalMetadata: { meta: 1 }, lineNumber: 1 },
+      ],
+      [
+        { field1: "a", field2: "b", field3: "c" },
+        { originalMetadata: { meta: 2 }, lineNumber: 2 },
+      ],
+      [
+        { field1: "d", field2: "e", field3: "f" },
+        { originalMetadata: { meta: 2 }, lineNumber: 3 },
+      ],
     ]);
     expect(control.emitEof).toBeCalledWith();
   });
@@ -210,9 +228,18 @@ describe("fromCsv", () => {
     await new Promise(process.nextTick);
     expect(control.emitError).not.toBeCalled();
     expect(control.emitItem.mock.calls).toEqual([
-      [{ field1: "1", field2: "2", field3: "3" }, { meta: 1 }],
-      [{ field1: "a", field2: "b", field3: "c" }, { meta: 2 }],
-      [{ field1: "d", field2: "e", field3: "f" }, { meta: 2 }],
+      [
+        { field1: "1", field2: "2", field3: "3" },
+        { originalMetadata: { meta: 1 }, lineNumber: 0 },
+      ],
+      [
+        { field1: "a", field2: "b", field3: "c" },
+        { originalMetadata: { meta: 2 }, lineNumber: 1 },
+      ],
+      [
+        { field1: "d", field2: "e", field3: "f" },
+        { originalMetadata: { meta: 2 }, lineNumber: 2 },
+      ],
     ]);
     expect(control.emitEof).toBeCalledWith();
   });

@@ -10,7 +10,12 @@ export function fromCsv<MetadataT>(
     newLineDelimiter?: string;
     header?: string[];
   } = { separator: ",", newLineDelimiter: "\r\n" },
-): NormalizedHandler<string, MetadataT, Record<string, string>, MetadataT> {
+): NormalizedHandler<
+  string,
+  MetadataT,
+  Record<string, string>,
+  { originalMetadata: MetadataT; lineNumber: number }
+> {
   let header: string[] | undefined = props.header;
   return pipe(
     pipe(splitString(props.newLineDelimiter ?? "\r\n"), parseCsvLine(props)),
@@ -28,7 +33,13 @@ export function fromCsv<MetadataT>(
 
       const res: Record<string, string> = {};
       header.forEach((field, index) => (res[field] = value[index]));
-      return { value: res, metadata };
+      return {
+        value: res,
+        metadata: {
+          originalMetadata: metadata.originalMetadata,
+          lineNumber: metadata.itemIndex,
+        },
+      };
     }),
   );
 }

@@ -3,7 +3,12 @@ import { withContext } from "../withContext";
 
 export function splitString<MetadataT>(
   separator: string | RegExp,
-): NormalizedHandler<string, MetadataT, string, MetadataT> {
+): NormalizedHandler<
+  string,
+  MetadataT,
+  string,
+  { originalMetadata: MetadataT; itemIndex: number }
+> {
   if (separator === "") {
     throw new Error("incorrect separator provided: empty string");
   }
@@ -68,6 +73,8 @@ export function splitString<MetadataT>(
     }
   };
 
+  let itemIndex = 0;
+
   return withContext({
     init() {
       return undefined as
@@ -93,7 +100,11 @@ export function splitString<MetadataT>(
           break;
         }
 
-        control.emitItem(res.emitLine, control.context.firstMetadata);
+        control.emitItem(res.emitLine, {
+          itemIndex,
+          originalMetadata: control.context.firstMetadata,
+        });
+        ++itemIndex;
         if (res.updatedLine.length > 0) {
           control.context = {
             text: res.updatedLine,
@@ -113,7 +124,11 @@ export function splitString<MetadataT>(
           break;
         }
 
-        control.emitItem(res.emitLine, control.context.firstMetadata);
+        control.emitItem(res.emitLine, {
+          originalMetadata: control.context.firstMetadata,
+          itemIndex,
+        });
+        ++itemIndex;
         control.context = {
           text: res.updatedLine,
           firstMetadata: control.context.firstMetadata,

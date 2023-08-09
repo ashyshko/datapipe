@@ -45,8 +45,8 @@ describe("splitString", () => {
       obj.onItem("123\n234", 1, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 1],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 1, itemIndex: 1 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -65,8 +65,8 @@ describe("splitString", () => {
       obj.onItem("34", 2, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 1],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 1, itemIndex: 1 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -83,7 +83,9 @@ describe("splitString", () => {
       obj.init?.(control as any);
       obj.onItem("123\n", 1, control as any);
       obj.onEof(control as any);
-      expect(control.emitItem.mock.calls).toEqual([["123", 1]]);
+      expect(control.emitItem.mock.calls).toEqual([
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+      ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
     });
@@ -101,8 +103,8 @@ describe("splitString", () => {
       obj.onItem("234\n", 2, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 2],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 2, itemIndex: 1 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -127,8 +129,8 @@ describe("splitString", () => {
       obj.onItem("\n234", 2, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 2],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 2, itemIndex: 1 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -146,9 +148,9 @@ describe("splitString", () => {
       obj.onItem("1\n\n\n", 1, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["1", 1],
-        ["", 1],
-        ["", 1],
+        ["1", { originalMetadata: 1, itemIndex: 0 }],
+        ["", { originalMetadata: 1, itemIndex: 1 }],
+        ["", { originalMetadata: 1, itemIndex: 2 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -168,8 +170,8 @@ describe("splitString", () => {
       obj.onItem("123\n234", 1, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 1],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 1, itemIndex: 1 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -188,8 +190,8 @@ describe("splitString", () => {
       obj.onItem("34", 2, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 1],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 1, itemIndex: 1 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -206,7 +208,9 @@ describe("splitString", () => {
       obj.init?.(control as any);
       obj.onItem("123\n", 1, control as any);
       obj.onEof(control as any);
-      expect(control.emitItem.mock.calls).toEqual([["123", 1]]);
+      expect(control.emitItem.mock.calls).toEqual([
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+      ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
     });
@@ -224,8 +228,8 @@ describe("splitString", () => {
       obj.onItem("234\n", 2, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 2],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 2, itemIndex: 1 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -244,10 +248,10 @@ describe("splitString", () => {
       obj.onItem("\n456\n", 2, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["123", 1],
-        ["234", 1],
-        ["345", 1],
-        ["456", 2],
+        ["123", { originalMetadata: 1, itemIndex: 0 }],
+        ["234", { originalMetadata: 1, itemIndex: 1 }],
+        ["345", { originalMetadata: 1, itemIndex: 2 }],
+        ["456", { originalMetadata: 2, itemIndex: 3 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
@@ -279,9 +283,9 @@ describe("splitString", () => {
       obj.onItem("1\n\n\n", 1, control as any);
       obj.onEof(control as any);
       expect(control.emitItem.mock.calls).toEqual([
-        ["1", 1],
-        ["", 1],
-        ["", 1],
+        ["1", { originalMetadata: 1, itemIndex: 0 }],
+        ["", { originalMetadata: 1, itemIndex: 1 }],
+        ["", { originalMetadata: 1, itemIndex: 2 }],
       ]);
       expect(control.emitError).not.toBeCalled();
       expect(control.emitEof).toBeCalledWith();
