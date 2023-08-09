@@ -45,6 +45,25 @@ export function limit<ValueT, MetadataT>(
         }
       }
     },
+    onError(error, control) {
+      switch (state.type) {
+        case "idle":
+        // fallthrough
+        case "emitting":
+          // just for consistency
+          state = { type: "finished" };
+          control.emitError(error);
+          break;
+        case "finished":
+          // do nothing - eof has been already emitted
+          break;
+        /*istanbul ignore next*/
+        default: {
+          const _missingCase: never = state;
+          throw new Error("unknown state");
+        }
+      }
+    },
     onEof(control) {
       switch (state.type) {
         case "idle":
