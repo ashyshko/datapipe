@@ -198,7 +198,7 @@ class TransformChain<
   }
 
   public async join(): Promise<void> {
-    await Promise.all([this.from.join(), this.to.join()]);
+    await this.to.join();
   }
   public onItem(value: InValueT, metadata: InMetadataT): void {
     this.from.onItem(value, metadata);
