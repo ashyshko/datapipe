@@ -10,3 +10,4 @@ export * from "./textDecoder";
 export * from "./fromCsv";
 export * from "./toCsv";
 export * from "./limit";
+export * from "./regexp";

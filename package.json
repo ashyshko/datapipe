@@ -1,6 +1,6 @@
 {
   "name": "@ashyshko/datapipe",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "A library designed to efficiently process large amounts of data in a streaming manner, without the need to store the entire dataset in memory.",
   "keywords": [
     "data pipeline",

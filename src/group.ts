@@ -1,5 +1,5 @@
 import { NormalizedHandler, Handler, normalize } from "./Handler";
-import { withContext } from "./withContext";
+import { Sequence } from "./Sequence";
 
 export function group<InValueT, InMetadataT, OutValueT, OutMetadataT, IndexT>(
   handler: {
@@ -19,13 +19,10 @@ export function group<InValueT, InMetadataT, OutValueT, OutMetadataT, IndexT>(
   const isIndexEqualFn =
     handler.isIndexEqualFn ?? ((index1, index2) => index1 === index2);
 
-  return withContext<
-    InValueT,
-    InMetadataT,
-    OutValueT,
-    OutMetadataT,
-    {
-      currentGroup?: {
+  let sequence: Sequence<InValueT, InMetadataT, OutValueT, OutMetadataT>;
+
+  let context:
+    | {
         index: IndexT;
         handler: NormalizedHandler<
           InValueT,
@@ -33,48 +30,34 @@ export function group<InValueT, InMetadataT, OutValueT, OutMetadataT, IndexT>(
           OutValueT,
           OutMetadataT
         >;
-      };
-    }
-  >({
-    init() {
-      return {};
+      }
+    | undefined;
+
+  return normalize({
+    init(control) {
+      sequence = new Sequence(control);
     },
-    onItem(value, metadata, control) {
+    onItem(value, metadata) {
       const groupIndex = handler.indexFn(value, metadata);
 
-      if (
-        control.context.currentGroup !== undefined &&
-        !isIndexEqualFn(control.context.currentGroup.index, groupIndex)
-      ) {
-        control.context.currentGroup.handler.onEof(control);
-        control.context.currentGroup = undefined;
+      if (context !== undefined && !isIndexEqualFn(context.index, groupIndex)) {
+        context = undefined;
       }
 
-      if (control.context.currentGroup === undefined) {
-        const groupHandler = normalize(handler.createGroup(groupIndex));
-
-        groupHandler.init?.(control);
-        control.context.currentGroup = {
+      if (context === undefined) {
+        context = {
           index: groupIndex,
-          handler: groupHandler,
+          handler: normalize(handler.createGroup(groupIndex)),
         };
       }
 
-      control.context.currentGroup.handler.onItem(value, metadata, control);
+      sequence.onItem(value, metadata, context.handler);
     },
-    onError(error, control) {
-      if (control.context.currentGroup !== undefined) {
-        control.context.currentGroup.handler.onError(error, control);
-      } else {
-        control.emitError(error);
-      }
+    onError(error) {
+      sequence.onError(error);
     },
-    onEof(control) {
-      if (control.context.currentGroup !== undefined) {
-        control.context.currentGroup.handler.onEof(control);
-      } else {
-        control.emitEof();
-      }
+    onEof() {
+      sequence.onEof();
     },
   });
 }

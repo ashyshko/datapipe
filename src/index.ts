@@ -1,5 +1,6 @@
 export * from "./DataPipe";
 export * from "./Transform";
+export * from "./TransformJoin";
 export * from "./Handler";
 export * from "./pipe";
 export * from "./withContext";
