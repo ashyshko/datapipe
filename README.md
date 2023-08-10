@@ -11,5 +11,5 @@ A library designed to efficiently process large amounts of data in a streaming m
 You can install the package using npm:
 
 ```bash
-npm install datapipe
+npm install @ashyshko/datapipe
 ```
