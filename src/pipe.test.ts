@@ -1,6 +1,14 @@
 import { pipe } from "./pipe";
 
 describe("pipe", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should send items/eof", async () => {
     const from = {
       init: jest.fn(),

@@ -1,6 +1,14 @@
 import { withPrevious } from "./withPrevious";
 
 describe("withPrevious", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should provide previous element as metadata", async () => {
     const control = {
       emitItem: jest.fn(),

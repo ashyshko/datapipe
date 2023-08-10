@@ -113,7 +113,9 @@ export class Transform<
     OutValueT,
     OutMetadataT
   >;
-  private sender = new Sender<OutValueT, OutMetadataT>();
+  private sender = new Sender<OutValueT, OutMetadataT>((msg) =>
+    console.log(`Transform ${this.name ?? "unnamed"}: ${msg}`),
+  );
 
   public constructor(
     dataPipe: DataPipe,

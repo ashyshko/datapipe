@@ -12,7 +12,9 @@ export class TransformJoin<OutValueT, OutMetadataT> extends TransformBase<
   protected sender: Sender<
     OutValueT,
     { originalMetadata: OutMetadataT; sourceIndex: number }
-  > = new Sender();
+  > = new Sender((msg) =>
+    console.log(`TransformJoin ${this.name ?? "unnamed"}: ${msg}`),
+  );
 
   public constructor(
     dataPipe: DataPipe,

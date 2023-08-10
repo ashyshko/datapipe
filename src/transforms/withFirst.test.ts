@@ -1,6 +1,14 @@
 import { withFirst } from "./withFirst";
 
 describe("withFirst", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should provide first element as metadata", async () => {
     const control = {
       emitItem: jest.fn(),

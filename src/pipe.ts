@@ -24,7 +24,9 @@ export function pipe<
     Sender<OutValueT, OutMetadataT>
   >({
     init(control) {
-      const pipe = new Sender<OutValueT, OutMetadataT>();
+      const pipe = new Sender<OutValueT, OutMetadataT>((msg) =>
+        console.log(`pipe: ${msg}`),
+      );
       from.init?.(pipe);
       to.init?.(control);
 

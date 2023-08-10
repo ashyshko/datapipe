@@ -3,6 +3,14 @@ import * as readableStreamReadModule from "./readableStreamRead";
 import { fetch } from "./fetch";
 
 describe("fetch", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should pipe body to readableStream", async () => {
     const spyGlobalFetch = jest.spyOn(global, "fetch");
 

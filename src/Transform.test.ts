@@ -8,6 +8,14 @@ describe("Transform", () => {
     _registerTransform: () => undefined,
   } as any as DataPipe;
 
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should register itself in DataPipe", () => {
     const dataPipe = {
       _registerTransform: jest.fn(),
@@ -325,5 +333,53 @@ describe("Transform", () => {
     res.onEof();
     await res.join();
     expect(filterFn.mock.calls).toEqual([[1, 1]]);
+  });
+
+  it("should provide log func on Sender ctor", () => {
+    const sender = { mockedSender: true };
+    const senderMock = jest
+      .spyOn(SenderModule, "Sender")
+      .mockImplementationOnce(() => sender as any);
+
+    const handler = {
+      init: jest.fn(),
+      onItem: jest.fn(),
+    };
+
+    const obj = new Transform(dummyDataPipe, handler, null);
+    expect(senderMock).toBeCalledTimes(1);
+    const logFn = senderMock.mock.lastCall![0];
+    expect(logFn).toBeInstanceOf(Function);
+
+    const logSpy = jest.spyOn(console, "log").mockReturnValue(undefined);
+
+    logFn!("test");
+    expect(logSpy).toBeCalledWith("Transform unnamed: test");
+
+    jest.restoreAllMocks();
+  });
+
+  it("should provide log func with name on Sender ctor", () => {
+    const sender = { mockedSender: true };
+    const senderMock = jest
+      .spyOn(SenderModule, "Sender")
+      .mockImplementationOnce(() => sender as any);
+
+    const handler = {
+      init: jest.fn(),
+      onItem: jest.fn(),
+    };
+
+    const obj = new Transform(dummyDataPipe, handler, "dummy");
+    expect(senderMock).toBeCalledTimes(1);
+    const logFn = senderMock.mock.lastCall![0];
+    expect(logFn).toBeInstanceOf(Function);
+
+    const logSpy = jest.spyOn(console, "log").mockReturnValue(undefined);
+
+    logFn!("test");
+    expect(logSpy).toBeCalledWith("Transform dummy: test");
+
+    jest.restoreAllMocks();
   });
 });

@@ -1,6 +1,14 @@
 import { DataPipe } from "./DataPipe";
 
 describe("DataPipe", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should join to all registered transforms", async () => {
     const obj = new DataPipe();
 

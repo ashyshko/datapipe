@@ -15,7 +15,9 @@ type QueueItem<ValueT, MetadataT> =
     };
 
 export class Sender<ValueT, MetadataT> implements ControlT<ValueT, MetadataT> {
-  public constructor() {
+  public constructor(
+    private readonly logger: (msg: string) => void = () => undefined,
+  ) {
     // run on next tick to provide ability for all receivers to connect
     Promise.resolve().then(() => {
       /* istanbul ignore next */
@@ -84,6 +86,7 @@ export class Sender<ValueT, MetadataT> implements ControlT<ValueT, MetadataT> {
   }
 
   public emitError(error: Error): void {
+    this.logger("error emit: " + error.message);
     this.emit(
       {
         type: "error",
@@ -94,6 +97,7 @@ export class Sender<ValueT, MetadataT> implements ControlT<ValueT, MetadataT> {
   }
 
   public emitEof(): void {
+    this.logger("eof emit");
     this.emit(
       {
         type: "eof",

@@ -129,6 +129,14 @@ describe("parseCsvLine", () => {
 });
 
 describe("fromCsv", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should work with correct data", async () => {
     const control = {
       emitItem: jest.fn(),

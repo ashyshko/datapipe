@@ -1,8 +1,17 @@
 import { DataPipe } from "./DataPipe";
 import { Transform, TransformChain } from "./Transform";
 import { TransformJoin } from "./TransformJoin";
+import * as SenderModule from "./Sender";
 
 describe("TransformJoin", () => {
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const dummyDataPipe = {
     _registerTransform: () => undefined,
   } as any as DataPipe;
@@ -151,5 +160,24 @@ describe("TransformJoin", () => {
     const res = obj.chain(recv);
     await res.join();
     expect(control.onEof).toBeCalledWith(expect.anything());
+  });
+
+  it("should provide log func on Sender ctor", () => {
+    const sender = { emitEof: jest.fn() };
+    const senderMock = jest
+      .spyOn(SenderModule, "Sender")
+      .mockImplementationOnce(() => sender as any);
+
+    const obj = new TransformJoin(dummyDataPipe, [], null);
+    expect(senderMock).toBeCalledTimes(1);
+    const logFn = senderMock.mock.lastCall![0];
+    expect(logFn).toBeInstanceOf(Function);
+
+    const logSpy = jest.spyOn(console, "log").mockReturnValue(undefined);
+
+    logFn!("test");
+    expect(logSpy).toBeCalledWith("TransformJoin unnamed: test");
+
+    jest.restoreAllMocks();
   });
 });
