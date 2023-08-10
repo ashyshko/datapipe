@@ -154,16 +154,10 @@ export class Transform<
       | Handler<OutValueT, OutMetadataT, NewValueT, NewMetadataT>,
     name?: string | null,
   ): TransformBase<InValueT, InMetadataT, NewValueT, NewMetadataT> {
-    if (!(receiver instanceof TransformBase)) {
-      receiver = new Transform(this.dataPipe, receiver, name);
-    }
-
-    const receiverTransform = receiver as TransformBase<
-      OutValueT,
-      OutMetadataT,
-      NewValueT,
-      NewMetadataT
-    >;
+    const receiverTransform =
+      receiver instanceof TransformBase
+        ? receiver
+        : new Transform(this.dataPipe, receiver, name);
 
     this.sender.connect(receiverTransform);
 
@@ -171,7 +165,7 @@ export class Transform<
   }
 }
 
-class TransformChain<
+export class TransformChain<
   InValueT,
   InMetadataT,
   OutValueT,
