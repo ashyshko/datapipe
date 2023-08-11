@@ -1,27 +1,24 @@
-import { Handler, NormalizedHandler, normalize } from "../Handler";
-import { pipe } from "../pipe";
+import { NormalizedHandler } from "../Handler";
 import { filterMap } from "./filterMap";
 
-export function withPrevious<InValueT, InMetadataT, OutValueT, OutMetadataT>(
-  handler: Handler<
-    InValueT,
-    InMetadataT & { previousItem: { value: InValueT; metadata: InMetadataT } },
-    OutValueT,
-    OutMetadataT
-  >,
-): NormalizedHandler<InValueT, InMetadataT, OutValueT, OutMetadataT> {
+export function withPrevious<InValueT, InMetadataT>(): NormalizedHandler<
+  InValueT,
+  InMetadataT,
+  { current: InValueT; previous: { value: InValueT; metadata: InMetadataT } },
+  InMetadataT
+> {
   let previousItem: { value: InValueT; metadata: InMetadataT };
-  return pipe(
-    filterMap((value, metadata) => {
-      if (previousItem === undefined) {
-        previousItem = { value, metadata };
-        return undefined;
-      }
-
-      const res = { value, metadata: { ...metadata, previousItem } };
+  return filterMap((value, metadata) => {
+    if (previousItem === undefined) {
       previousItem = { value, metadata };
-      return res;
-    }),
-    handler,
-  );
+      return undefined;
+    }
+
+    const res = { current: value, previous: previousItem };
+    previousItem = { value, metadata };
+    return {
+      value: res,
+      metadata,
+    };
+  });
 }

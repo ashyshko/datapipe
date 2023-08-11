@@ -170,8 +170,6 @@ export class Transform<
 export class TransformChain<
   InValueT,
   InMetadataT,
-  OutValueT,
-  OutMetadataT,
   NewValueT,
   NewMetadataT,
 > extends TransformBase<InValueT, InMetadataT, NewValueT, NewMetadataT> {
@@ -180,17 +178,18 @@ export class TransformChain<
     public readonly from: TransformBase<
       InValueT,
       InMetadataT,
-      OutValueT,
-      OutMetadataT
+      unknown,
+      unknown
     >,
     public readonly to: TransformBase<
-      OutValueT,
-      OutMetadataT,
+      unknown,
+      unknown,
       NewValueT,
       NewMetadataT
     >,
+    name: string | null = "TransformChain",
   ) {
-    super(dataPipe, null);
+    super(dataPipe, name);
   }
 
   public async join(): Promise<void> {

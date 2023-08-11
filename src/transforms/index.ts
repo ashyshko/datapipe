@@ -11,3 +11,5 @@ export * from "./fromCsv";
 export * from "./toCsv";
 export * from "./limit";
 export * from "./regexp";
+export * from "./rate";
+export * from "./accumulate";

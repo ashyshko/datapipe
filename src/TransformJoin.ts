@@ -121,22 +121,28 @@ export class TransformJoin<OutValueT, OutMetadataT> extends TransformBase<
         : new Transform(this.dataPipe, handler, name);
     this.sender.connect(handlerObj);
 
-    return new TransformChain<
-      never,
-      never,
-      OutValueT,
-      { originalMetadata: OutMetadataT; sourceIndex: number },
-      NewValueT,
-      NewMetadataT
-    >(
+    return new TransformChain<never, never, NewValueT, NewMetadataT>(
       this.dataPipe,
       this,
-      handler as TransformBase<
-        OutValueT,
-        { originalMetadata: OutMetadataT; sourceIndex: number },
-        NewValueT,
-        NewMetadataT
-      >,
+      handlerObj,
     );
   }
+}
+
+export function join<InValueT, InMetadataT, OutValueT, OutMetadataT>(
+  from: TransformBase<InValueT, InMetadataT, unknown, unknown>,
+  to: TransformBase<unknown, unknown, OutValueT, OutMetadataT>[],
+  name = "join",
+): TransformBase<
+  InValueT,
+  InMetadataT,
+  OutValueT,
+  { originalMetadata: OutMetadataT; sourceIndex: number }
+> {
+  return new TransformChain(
+    from.dataPipe,
+    from,
+    new TransformJoin(from.dataPipe, to),
+    name,
+  );
 }

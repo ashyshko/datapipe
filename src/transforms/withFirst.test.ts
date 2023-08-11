@@ -9,34 +9,27 @@ describe("withFirst", () => {
     jest.restoreAllMocks();
   });
 
-  it("should provide first element as metadata", async () => {
+  it("should provide first element as metadata", () => {
     const control = {
       emitItem: jest.fn(),
       emitError: jest.fn(),
       emitEof: jest.fn(),
     };
 
-    const handler = {
-      onItem: jest.fn(),
-    };
-
-    const obj = withFirst(handler);
+    const obj = withFirst();
     obj.init?.(control as any);
     obj.onItem("first", { meta: 1 }, control as any);
     obj.onItem("second", { meta: 2 }, control as any);
     obj.onItem("third", { meta: 3 }, control as any);
     obj.onEof(control as any);
-    await new Promise(process.nextTick);
-    expect(handler.onItem.mock.calls).toEqual([
+    expect(control.emitItem.mock.calls).toEqual([
       [
-        "second",
-        { meta: 2, firstItem: { value: "first", metadata: { meta: 1 } } },
-        expect.anything(),
+        { current: "second", first: { value: "first", metadata: { meta: 1 } } },
+        { meta: 2 },
       ],
       [
-        "third",
-        { meta: 3, firstItem: { value: "first", metadata: { meta: 1 } } },
-        expect.anything(),
+        { current: "third", first: { value: "first", metadata: { meta: 1 } } },
+        { meta: 3 },
       ],
     ]);
   });

@@ -1,6 +1,6 @@
 import { DataPipe } from "./DataPipe";
 import { Transform, TransformChain } from "./Transform";
-import { TransformJoin } from "./TransformJoin";
+import { TransformJoin, join } from "./TransformJoin";
 import * as SenderModule from "./Sender";
 
 describe("TransformJoin", () => {
@@ -179,5 +179,59 @@ describe("TransformJoin", () => {
     expect(logSpy).toBeCalledWith("TransformJoin unnamed: test");
 
     jest.restoreAllMocks();
+  });
+});
+
+describe("join", () => {
+  const dummyDataPipe = {
+    _registerTransform: () => undefined,
+  } as any as DataPipe;
+
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("should work", async () => {
+    const fromHandler = {
+      onItem: jest.fn(),
+      onEof: jest.fn(),
+    };
+    const toHandler = {
+      init: jest.fn(),
+      onItem: jest.fn(),
+      onEof: jest.fn(),
+    };
+    const recv = {
+      onItem: jest.fn(),
+      onError: jest.fn(),
+      onEof: jest.fn(),
+    };
+    const from = new Transform(dummyDataPipe, fromHandler);
+    const to = new Transform(dummyDataPipe, toHandler);
+    const obj = join(from, [to]);
+    obj.chain(recv);
+    await new Promise(process.nextTick);
+    from.onItem(123, 234);
+    from.onEof();
+    expect(fromHandler.onItem).toBeCalledWith(123, 234, expect.anything());
+    expect(fromHandler.onEof).toBeCalledWith(expect.anything());
+    expect(toHandler.init).toBeCalledTimes(1);
+    const toControl = toHandler.init.mock.lastCall![0];
+    toControl.emitItem(234, 345);
+    toControl.emitEof();
+    expect(recv.onItem).toBeCalledWith(
+      234,
+      {
+        originalMetadata: 345,
+        sourceIndex: 0,
+      },
+      expect.anything(),
+    );
+    expect(recv.onEof).toBeCalledWith(expect.anything());
+    await obj.join();
   });
 });

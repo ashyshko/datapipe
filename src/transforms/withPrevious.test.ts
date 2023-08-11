@@ -9,34 +9,33 @@ describe("withPrevious", () => {
     jest.restoreAllMocks();
   });
 
-  it("should provide previous element as metadata", async () => {
+  it("should provide previous element as metadata", () => {
     const control = {
       emitItem: jest.fn(),
       emitError: jest.fn(),
       emitEof: jest.fn(),
     };
 
-    const handler = {
-      onItem: jest.fn(),
-    };
-
-    const obj = withPrevious(handler);
+    const obj = withPrevious();
     obj.init?.(control as any);
     obj.onItem("first", { meta: 1 }, control as any);
     obj.onItem("second", { meta: 2 }, control as any);
     obj.onItem("third", { meta: 3 }, control as any);
     obj.onEof(control as any);
-    await new Promise(process.nextTick);
-    expect(handler.onItem.mock.calls).toEqual([
+    expect(control.emitItem.mock.calls).toEqual([
       [
-        "second",
-        { meta: 2, previousItem: { value: "first", metadata: { meta: 1 } } },
-        expect.anything(),
+        {
+          current: "second",
+          previous: { value: "first", metadata: { meta: 1 } },
+        },
+        { meta: 2 },
       ],
       [
-        "third",
-        { meta: 3, previousItem: { value: "second", metadata: { meta: 2 } } },
-        expect.anything(),
+        {
+          current: "third",
+          previous: { value: "second", metadata: { meta: 2 } },
+        },
+        { meta: 3 },
       ],
     ]);
   });
