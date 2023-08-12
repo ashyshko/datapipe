@@ -14,3 +14,4 @@ export * from "./limit";
 export * from "./regexp";
 export * from "./rate";
 export * from "./accumulate";
+export * from "./skip";
