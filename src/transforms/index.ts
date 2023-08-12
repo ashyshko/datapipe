@@ -9,6 +9,7 @@ export * from "./splitString";
 export * from "./textDecoder";
 export * from "./fromCsv";
 export * from "./toCsv";
+export * from "./toJson";
 export * from "./limit";
 export * from "./regexp";
 export * from "./rate";

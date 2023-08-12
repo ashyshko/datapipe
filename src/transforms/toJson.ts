@@ -1,4 +1,4 @@
-import { NormalizedHandler, normalize } from "./Handler";
+import { NormalizedHandler, normalize } from "../Handler";
 
 export function toJson<
   T extends Record<string, unknown>,

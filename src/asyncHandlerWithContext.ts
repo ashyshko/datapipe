@@ -1,4 +1,5 @@
 import { ControlT, NormalizedHandler } from "./Handler";
+import { toError } from "./utils/toError";
 import { ControlWithContextT } from "./withContext";
 
 export function asyncHandlerWithContext<
@@ -108,10 +109,7 @@ export function asyncHandlerWithContext<
       try {
         await fn();
       } catch (e) {
-        /* istanbul ignore next */
-        const error = e instanceof Error ? e : new Error("unknown error");
-
-        control.emitError(error);
+        control.emitError(toError(e));
       }
     }
   };

@@ -1,4 +1,5 @@
 import { NormalizedHandler, normalize } from "../Handler";
+import { toError } from "../utils/toError";
 
 export function filterMap<InValueT, InMetadataT, OutValueT, OutMetadataT>(
   callback: (
@@ -14,10 +15,7 @@ export function filterMap<InValueT, InMetadataT, OutValueT, OutMetadataT>(
           control.emitItem(mapped.value, mapped.metadata);
         }
       } catch (e) {
-        /* istanbul ignore next */
-        const error = e instanceof Error ? e : new Error("unknown error");
-
-        control.emitError(error);
+        control.emitError(toError(e));
       }
     },
   });
